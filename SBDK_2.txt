@@ -1,0 +1,211 @@
+create database antera_car_service
+
+create table Pelanggan(
+    P_ID char(16) PRIMARY KEY NOT NULL,
+    P_Nama varchar(60) NOT NULL,
+    P_No_Telp varchar(15) NOT NULL,
+    P_Email varchar(256),
+    P_Alamat varchar(100) NOT NULL
+);
+
+create table Mekanik(
+    Mk_ID char(6) PRIMARY KEY NOT NULL,
+    Mk_Nama varchar(60) NOT NULL
+);
+
+create table Mobil(
+    Mb_Vin char(17) PRIMARY KEY NOT NULL,
+    Mb_Merk varchar(20) NOT NULL,
+    Mb_Tipe varchar(30) NOT NULL,
+    Mb_Tahun int NOT NULL,
+    Mb_Warna varchar(20) NOT NULL,
+    Mb_P_ID char(16) NOT NULL,
+    CONSTRAINT Mobil_Pelanggan_FK FOREIGN KEY (Mb_P_ID) REFERENCES Pelanggan(P_ID)
+);
+
+create table Tiket_Servis(
+    TS_ID char(8) PRIMARY KEY NOT NULL,
+    TS_Waktu_Masuk timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    TS_Waktu_Keluar timestamp DEFAULT CURRENT_TIMESTAMP,
+    TS_Deskripsi varchar(400) NOT NULL,
+    TS_Komentar varchar(400),
+    TS_P_ID char(16) NOT NULL,
+    TS_Mb_Vin char(17) NOT NULL,
+    CONSTRAINT Tiket_Servis_Pelanggan_FK FOREIGN KEY (TS_P_ID) REFERENCES Pelanggan(P_ID),
+    CONSTRAINT Tiket_Servis_Mobil_FK FOREIGN KEY (TS_Mb_Vin) REFERENCES Mobil(Mb_Vin)
+);
+
+ALTER TABLE Tiket_Servis
+ALTER COLUMN TS_Waktu_Masuk SET DEFAULT CURRENT_TIMESTAMP,
+ALTER COLUMN TS_Waktu_Keluar SET DEFAULT CURRENT_TIMESTAMP;
+
+create table Mekanik_Servis(
+    Mksv_Mk_ID char(6) NOT NULL,
+    Mksv_TS_ID char(8) NOT NULL,
+    CONSTRAINT Mekanik_Servis_PK PRIMARY KEY (Mksv_Mk_ID, Mksv_TS_ID),
+    CONSTRAINT MekanikServis_Mekanik_FK FOREIGN KEY (Mksv_Mk_ID) REFERENCES Mekanik(Mk_ID),
+    CONSTRAINT MekanikServis_Servis_FK FOREIGN KEY (Mksv_TS_ID) REFERENCES Tiket_Servis(TS_ID)
+);
+
+create table Suku_Cadang(
+    SC_ID char(7) PRIMARY KEY NOT NULL,
+    SC_Nama varchar(120) NOT NULL,
+    SC_Deskripsi varchar(100) NOT NULL,
+    SC_Harga decimal NOT NULL
+);
+
+create table SukuCadang_Servis(
+    Scsv_SC_ID char(7) NOT NULL,
+    Scsv_TS_ID char(8) NOT NULL,
+    CONSTRAINT Scsv_PK PRIMARY KEY (Scsv_SC_ID, Scsv_TS_ID),
+    CONSTRAINT Scsv_SukuCadang_FK FOREIGN KEY (Scsv_SC_ID) REFERENCES Suku_Cadang(SC_ID),
+    CONSTRAINT Scsv_Servis_FK FOREIGN KEY (Scsv_TS_ID) REFERENCES Tiket_Servis(TS_ID)
+);
+
+#2
+
+create table Supplier(
+    Sp_ID char(6) PRIMARY KEY NOT NULL,
+    Sp_Nama varchar(60) NOT NULL,
+    Sp_No_Telp varchar(15) NOT NULL,
+    Sp_Email varchar(256),
+    Sp_Alamat varchar(100) NOT NULL
+);
+
+#3
+
+ALTER TABLE Mekanik_Servis
+DROP FOREIGN KEY MekanikServis_Mekanik_FK;
+
+ALTER TABLE Mekanik RENAME Pegawai;
+
+ALTER TABLE Mekanik_Servis
+ADD CONSTRAINT MekanikServis_Pegawai_FK FOREIGN KEY (Mksv_Mk_ID) REFERENCES Pegawai(Mk_ID);
+
+create table Posisi(
+    Ps_ID char(6) PRIMARY KEY NOT NULL,
+    Ps_Nama varchar(15) NOT NULL
+);
+
+ALTER TABLE Pegawai
+ADD COLUMN Mk_Ps_ID char(6) NOT NULL,
+CONSTRAINT Pegawai_Posisi_FK FOREIGN KEY (Mk_Ps_ID) REFERENCES Posisi(Ps_ID);
+
+#4
+
+ALTER TABLE Pegawai
+DROP FOREIGN KEY Pegawai_Posisi_FK,
+DROP COLUMN Mk_Ps_ID;
+
+DROP Table Posisi;
+
+ALTER TABLE Pegawai
+ADD COLUMN Mk_Posisi char(6) NOT NULL;
+
+#5
+
+INSERT INTO pelanggan(P_ID,P_Nama,P_No_Telp,P_Email,P_Alamat) VALUES 
+	('3225011201880002','Andy Williams','62123456789','andy@gmail.com','Jl. Apel no 1'),
+    ('3525010706950001','Marshall Paul','621451871011','paulan@gmail.com','Jl. Jeruk no 12'),
+    ('3525016005920002','Kazuya Tanaka','62190129190','tanaka@gmail.com','Jl. JKT no 48');
+ 
+INSERT INTO pelanggan(P_ID,P_Nama,P_No_Telp,P_Alamat) VALUES
+    ('3975311107780001','Budi Prutomo','621545458901','Jl. Nanas no 45'),
+    ('3098762307810002','Razai Ambudi','621898989102','Jl. Mangga no 2');
+    
+INSERT INTO
+    Mobil (
+        Mb_Vin,
+        Mb_Merk,
+        Mb_Tipe,
+        Mb_Tahun,
+        Mb_Warna,
+        Mb_P_ID
+    )
+
+VALUES ("JN8AZ1MW4BW678706", "Nissan", "Murano",2011,"biru","3525010706950001"),
+("2LMTJ8JP0GSJ00175","Lincoln"," MKX",2016,"merah","3525016005920002"),
+("ZFF76ZHT3E0201920","Ferrari"," Ferrari",2014 ,"merah","3975311107780001"),
+("1HGCP26359A157554","Honda"," Accord",2009 ,"hitam","3225011201880002"),
+("5YJSA1DN5CFP01785","Tesla"," Model S",2012 ,"putih","3098762307810002");
+
+INSERT INTO
+    Pegawai (
+        Mk_ID,
+        Mk_Nama,
+        Mk_Posisi
+    ) VALUES 
+    ("MK0001", "Walter Jones", "mekanik"),
+    ("MK0002", "Kentaki Veraid", "kasir"),
+    ("MK0003", "Leo", "mekanik"),
+    ("MK0004", "Rethand Janita", "pencuci"),
+    ("MK0005", "Elizabeth Alexandra", "mekanik");
+
+INSERT INTO
+    Supplier (
+        Sp_ID,
+        Sp_Nama,
+        Sp_No_Telp,
+        Sp_Email,
+        Sp_Alamat
+    ) VALUES 
+    ("SP0001", "Indotrading", "6282283741247","indotrading@rocketmail.com","Jl. Bambu no 5"),
+    ("SP0002", "Jayasinda", "628227428238","Jayasinda@yahoo.com","Jl. Padi no 12"),
+    ("SP0003", "SAS Autoparts", "6282212382311","sasparts@gmail.com","Jl. Sorghum no 24");
+    
+    INSERT INTO
+    Suku_Cadang (
+        SC_ID,
+        SC_Nama,
+        SC_Deskripsi,
+        SC_Harga
+    ) VALUES 
+    ("SC00001", "Damper", "Damper Per Belakang Original","800000.00"),
+    ("SC00002", "Coil Ignition", "Coil Ignition Denso Jepang","550000.00"),
+    ("SC00003", "Selang Filter", "Selang Filter Udara Original","560000.00"),
+    ("SC00004", "Bushing", "Bushing Upper Arm Original","345000.00"),
+    ("SC00005", "Radiator Racing", "Radiator Racing Kotorad Manual Diesel","6750000.00");
+    
+    INSERT INTO
+    Tiket_servis (
+        TS_ID,
+        TS_Waktu_Masuk,
+        TS_Waktu_Keluar,
+        TS_Deskripsi,
+        TS_Komentar,
+        TS_P_ID,
+        TS_Mb_Vin
+    ) VALUES 
+    ('TS000001', '2023-11-05 08:00:00', '2023-11-05 16:30:00', 
+	 'Mobil mengalami getaran yang tidak normal saat berkendara. Untuk memperbaikinya, kami akan mengganti damper yang aus dan juga bushing yang telah rusak.',
+     'Saya sangat puas dengan perbaikan ini. Mobil saya sekarang getarannya hilang. Terima kasih atas pelayanan yang baik!', 
+     '3098762307810002', '5YJSA1DN5CFP01785'),
+     ('TS000002', '2023-11-05 09:15:00', '2023-11-05 17:45:00', 
+     'Mesin mobil sering mati secara tiba-tiba atau tidak berjalan dengan baik. Permasalahannya terletak pada coil ignition yang bermasalah. Kami akan menggantinya dan melakukan pengaturan ulang untuk memastikan kinerja mesin yang lebih baik. Mesin mobil saya sekarang berjalan seperti baru lagi. Tidak ada lagi mati mendadak, dan kinerjanya sangat baik. Pelayanan yang cepat dan profesional.', 
+     '3975311107780001', 'ZFF76ZHT3E0201920'),
+     ('TS000003', '2023-11-06 10:30:00', '2023-11-06 18:15:00', 'Untuk meningkatkan kinerja pendinginan mesin, kami akan membersihkan radiator dan memeriksa apakah ada kerusakan atau kebocoran. Jika diperlukan, kami akan mengganti komponen yang rusak. Mobil saya sekarang tidak lagi mengalami masalah panas berlebihan. Radiator berfungsi dengan baik, dan saya merasa aman saat berkendara. Terima kasih atas perbaikan yang berkualitas.', '3525016005920002', '2LMTJ8JP0GSJ00175'),
+     ('TS000004', '2023-11-06 11:45:00', '2023-11-06 19:30:00', 'Mobil mengalami masalah saat memasok bahan bakar ke mesin. Masalah ini terjadi karena selang filter bahan bakar yang tersumbat. Kami akan menggantinya sehingga aliran bahan bakar menjadi lancar kembali.','Setelah penggantian selang filter bahan bakar, mobil saya kembali berjalan dengan lancar. Tidak ada lagi masalah pengiriman bahan bakar. Pelayanan yang sangat membantu.', '3525010706950001', 'JN8AZ1MW4BW678706'),
+     ('TS000005', '2023-11-06 12:30:00', '2023-11-06 20:00:00', 'Mobil akan menjalani pemeliharaan komprehensif, termasuk pemeriksaan seluruh sistem. Ini termasuk penggantian damper yang aus, coil ignition yang bermasalah, serta pemeriksaan dan perawatan selang filter dan radiator racing. Semua suku cadang yang perlu diganti akan diperbaiki agar mobil berfungsi seperti semula.', 'Pemeliharaan komprehensif yang telah dilakukan membuat mobil saya seperti baru. Semua masalah telah diperbaiki, dan saya merasa yakin dengan kualitas perbaikan yang diberikan. Terima kasih atas kerja kerasnya.', 
+     '3225011201880002', '1HGCP26359A157554');
+
+INSERT INTO Mekanik_Servis (Mksv_TS_ID, Mksv_Mk_ID) VALUES
+	('TS000001', 'MK0005'),
+    ('TS000002', 'MK0003'),
+    ('TS000002', 'MK0004'),
+    ('TS000003', 'MK0005'),
+    ('TS000004', 'MK0003'),
+    ('TS000005', 'MK0001'),
+    ('TS000005', 'MK0005'),
+    ('TS000005', 'MK0004');
+
+INSERT INTO suku_cadang_servis (scsv_ts_id, scsv_sc_id) VALUES
+	('TS000001', 'SC00001'),
+    ('TS000001', 'SC00004'),
+    ('TS000002', 'SC00002'),
+    ('TS000003', 'SC00005'),
+    ('TS000004', 'SC00003'),
+    ('TS000005', 'SC00001'),
+    ('TS000005', 'SC00002'),
+    ('TS000005', 'SC00003'),
+    ('TS000005', 'SC00005');
+
